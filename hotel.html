@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="om">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blue Horizon | Hotel Management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: #f4f7f5; color: #333333; }
+
+        /* --- LOGIN PAGE --- */
+        #login-page {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        #slide-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0; /* Jalqaba irratti hunduu dhokataa dha */
+            transition: opacity 1.5s ease-in-out; /* Suuta jedhee akka mul'atuuf */
+        }
+        /* Suuraan yeroo mul'atu (Active) */
+        .slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+        /* --- Kallattii Sochii (Animations) --- */
+        /* 1. Zoom In Effect */
+        .zoom-in.active { animation: zoomIn 6s forwards; }
+        @keyframes zoomIn {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        /* 2. Slide From Right */
+        .slide-right.active { animation: slideRight 1.5s ease-out; }
+        @keyframes slideRight {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        /* 3. Slide From Left */
+        .slide-left.active { animation: slideLeft 1.5s ease-out; }
+        @keyframes slideLeft {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+        /* 4. Slide From Top */
+        .slide-top.active { animation: slideTop 1.5s ease-out; }
+        @keyframes slideTop {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+        /* 5. Slide From Bottom */
+        .slide-bottom.active { animation: slideBottom 1.5s ease-out; }
+        @keyframes slideBottom {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* Login card overlay gubbaa akka taa'u mirkaneeffadhu */
+        .login-card {
+            position: relative;
+            z-index: 10;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .login-card select, .login-card input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
+        .btn-login { width: 100%; padding: 12px; background: #000CBA; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        /* --- DASHBOARD --- */
+        #main-dashboard { display: none; }
+        nav {
+            background: #000CBA; color: white; padding: 0 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            height: 70px; position: sticky; top: 0; z-index: 1000;
+        }
+        nav ul { display: flex; list-style: none; gap: 20px; }
+        nav ul li a { color: white; text-decoration: none; font-weight: bold; cursor: pointer; }
+        .logout-btn { background: #dc3545; padding: 7px 15px; border-radius: 5px; }
+
+        .content-section { padding: 30px 5%; display: none; }
+        .active-section { display: block; }
+        .admin-box { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
+
+        /* --- TABLES --- */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+        table th, table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        table th { background: #000CBA; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+
+        /* --- SAMPLE IMAGES --- */
+        .sample-images { display: flex; gap: 20px; margin-bottom: 20px; }
+        .sample-images img { width: 50%; height: 250px; object-fit: cover; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+        /* --- CART STYLE --- */        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .qty-btn { background: #eee; border: 1px solid #ccc; padding: 2px 8px; cursor: pointer; border-radius: 3px; }
+
+        /* --- NOTIFICATION --- */
+        #notification {
+            position: fixed; top: 20px; right: 20px; background: #28a745; color: white;
+            padding: 15px 25px; border-radius: 8px; display: none; z-index: 2000;
+        }
+        /* New styles for action buttons in table */
+        .btn-action {
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            font-weight: bold;
+            margin-right: 5px; /* Space between buttons */
+        }
+
+        .edit-btn{
+            background:#007bff;
+            color:white;
+            border:none;
+            padding:6px 10px;
+            border-radius:5px;
+            cursor:pointer;
+            margin-left:5px;
+        }
+
+        .delete-btn {
+            background: #dc3545; /* Red for delete */
+            color: white;
+        }
+
+        /* New styles for the booking modal */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 2001; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.6); /* Black w/ opacity */
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto; /* 15% from the top and centered */
+            padding: 30px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more responsive */
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .modal-buttons .btn-login {
+            width: 48%; /* Adjust button width */
+            padding: 10px;
+        }
+
+        /* New styles for item/room status buttons */
+        .btn-order.added {
+            background: #28a745; /* Green for added */
+            cursor: default;
+        }
+
+        .btn-order.booked {
+            background: #ffc107; /* Yellow for booked */
+            color: #333;
+            cursor: default;
+        }
+        /* SEARCH BAR CONTAINER */
+        .search-box{
+            width:100%;
+            margin:20px 0;
+            background: #ffc1074b;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        /* SEARCH INPUT */
+        #searchInput{
+            width:100%;
+            max-width:500px;
+            padding:14px 20px;
+            border:2px solid #0018c9;
+            border-radius:40px;
+            outline:none;
+            font-size:16px;
+            background:#ffffff80;
+            color:#333;
+            transition:0.3s ease;
+            box-shadow:0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* PLACEHOLDER */
+        #searchInput::placeholder{
+            color:#888;
+            font-size:15px;
+        }
+        /* FOCUS EFFECT */
+        #searchInput:focus{
+            border-color:#00a2ff;
+            box-shadow:
+                0 0 10px rgba(0,162,255,0.5),
+                0 4px 15px rgba(0,0,0,0.15);
+            transform:scale(1.02);
+        }
+        /* MOBILE RESPONSIVE */
+        @media(max-width:600px){
+            #searchInput{
+                width:95%;
+                font-size:14px;
+                padding:12px 16px;
+            }
+        }
+        /* DROPDOWN */
+        .dropdown{
+
+            position:relative;
+
+            list-style:none;
+        }
+
+        /* DROPDOWN MENU */
+        .dropdown-menu{
+
+            display:none;
+
+            position:absolute;
+
+            top:100%;
+
+            left:0;
+
+            background:#fff;
+
+            min-width:180px;
+
+            border-radius:8px;
+
+            box-shadow:0 4px 15px rgba(0,0,0,0.15);
+
+            padding:10px 0;
+
+            z-index:1000;
+        }
+
+        /* MENU ITEMS */
+        .dropdown-menu li{
+
+            list-style:none;
+
+            width:100%;
+        }
+
+        /* MENU LINKS */
+        .dropdown-menu li a{
+
+            display:block;
+
+            padding:12px 18px;
+
+            color:#333;
+
+            text-decoration:none;
+
+            transition:0.3s;
+        }
+
+        /* HOVER EFFECT */
+        .dropdown-menu li a:hover{
+
+            background:#0018c9;
+
+            color:white;
+        }
+
+        /* SHOW DROPDOWN */
+        .dropdown:hover .dropdown-menu{
+
+            display:block;
+        }
+        .dropdown.active .dropdown-menu{
+            display:block;
+         }
+    </style>
+</head>
+<body>
+
+    <div id="notification"></div>
+
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-page">
+        <div id="slide-container" class="slide-container"></div>
+        <div class="login-card">
+            <h1 style="color:#000CBA">Blue Horizon</h1>
+            <p>Hotel Management System</p>
+            <select id="roleSelect">
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+                <option value="customer">Customer (Maamila)</option>
+            </select>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button class="btn-login" onclick="handleLogin()">Gali (Login)</button>
+            <div
+                id="createAccountBox"
+                style="
+                    display:none;
+                    text-align:center;
+                    margin-top:15px;
+                "
+            >
+
+                <p style="margin-bottom:10px;color:white;">
+
+                    Don't have account?
+
+                </p>
+
+                <button
+                    type="button"
+                    class="btn-login"
+                    onclick="openCustomerRegister()"
+                >
+                    Create New Account
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MAIN DASHBOARD -->
+    <div id="main-dashboard">
+        <nav>
+            <div class="logo">BLUE HORIZON</div>
+            <ul id="nav-links"></ul>
+        </nav>
+
+        <div style="padding: 20px 5%; background: #fff; border-bottom: 2px solid #ffcc00;">
+            <h2 id="welcome-msg">Baga Nagaan Dhufte!</h2>
+        </div>
+
+        <!-- ADMIN SECTION -->
+        <section id="admin-section" class="content-section">
+            <div class="admin-box">
+                <h3>Maamila Galmeessi</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <input type="text" id="fullName" placeholder="Maqaa Guutuu" style="padding:10px;">
+                    <input type="text" id="address" placeholder="address" style="padding:10px;">
+                    <input type="text" id="phone" placeholder="Bilbila" style="padding:10px;">
+                    <input type="text" id="regUser" placeholder="Username" style="padding:10px;">
+                    <input type="password" id="regPass" placeholder="Password" style="padding:10px;">
+                </div>                
+                <button class="btn-login" style="margin-top:10px; width:200px;" onclick="registerCustomer()">Save Customer</button>
+                <table id="customerTable">
+                    <thead>
+                        <tr>
+                            <th>Maqaa</th>
+                            <th>Address</th>
+                            <th>Bilbila</th>
+                            <th>Username</th>
+                            <th>Action</th>
+                       </tr>
+                    </thead>
+                    <tbody id="customerBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+         <!-- FOOD & DRINK SECTION -->
+        
+        <section id="food-section" class="content-section">
+            <div class="admin-box">
+                <h3>🍽 Food & Drink Management</h3>
+                <div
+                    style="
+                        display:grid;
+                        grid-template-columns:1fr 1fr 1fr;
+                        gap:10px;
+                        margin-top:10px;
+                    ">
+                    <input
+                        type="text"
+                        id="foodName"
+                        placeholder="Food Name"
+                        style="padding:10px;"
+                    >
+                    <select id="foodType" style="padding:10px;">
+                        <option value="Food">
+                            Food
+                        </option>
+                        <option value="Drink">
+                            Drink
+                        </option>
+                    </select>
+                    <input
+                        type="number"
+                        id="foodPrice"
+                        placeholder="Price"
+                        style="padding:10px;"
+                    >
+                </div>
+                <button
+                    class="btn-login"
+                    style="margin-top:10px;width:200px;"
+                    onclick="addFood()"
+                >
+                    Save Food
+                </button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Price</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="foodBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+             <!--Room Section-->
+
+        <section id="room-section" class="content-section">
+            <div class="admin-box">
+                <h3>🛏 Room Management</h3>
+                <div
+                    style="
+                        display:grid;
+                        grid-template-columns:1fr 1fr 1fr;
+                        gap:10px;
+                        margin-top:10px;
+                    ">
+                    <input
+                        type="text"
+                        id="roomIdInput"
+                        placeholder="Room ID"
+                        style="padding:10px;"
+                    >
+                    <input
+                        type="text"
+                        id="roomTypeInput"
+                        placeholder="Room Type"
+                        style="padding:10px;"
+                    >
+                    <input
+                        type="number"
+                        id="roomPriceInput"
+                        placeholder="Price"
+                        style="padding:10px;"
+                    >
+                </div>
+                <button
+                    class="btn-login"
+                    style="margin-top:10px;width:200px;"
+                    onclick="addRoom()"
+                >
+                    Save Room
+                </button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Room ID</th>
+                            <th>Room Type</th>
+                            <th>Price</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="roomBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- MANAGER SECTION -->
+        <section id="manager-section" class="content-section">
+            <div class="admin-box">
+                <h3>👨‍💼 Active Orders</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Food&Drink</th>
+                            <th>Room</th>
+                            <th>Qty</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="managerOrders"></tbody>
+                </table>
+            </div>
+
+            <div class="admin-box">
+                <h3>📜 Order History / Store</h3>
+                <div id="reportBox" style="margin: 10px 0; font-weight: bold; color: #000CBA;"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Food&Drink</th>
+                            <th>Room</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="managerHistory"></tbody>
+                </table>
+                <button class="btn-login" style="background: #555; margin-top: 10px; width: 150px;" onclick="clearHistory()">Clear History</button>
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION -->
+        <section id="about-section" class="content-section">
+            <div class="admin-box" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+                <div style="flex: 1; min-width: 300px;">
+                    <h3 style="color:#000CBA; margin-bottom: 10px;">Waa'ee Blue Horizon Hotel</h3>
+                    <p style="margin-bottom: 15px;">Hotel Blue Horizon waggoota 20 oliif tajaajila qananii fi amansiisaa kennaa jira. Hoteellii keenya kutaalee bareedoo, nyaata qulqullina qabu, fi bakka boqonnaa gahaa qaba.</p>
+                    <p style="font-weight: bold; margin-bottom: 5px;">Mul'ata Keenya: Tajaajila hoteelaa hunda caalu Itoophiyaa keessatti dhiyeessuu.</p>
+                    <p style="margin-bottom: 5px;">Teessoo: Finfinnee, Bole, Ibsa dhuubaa</p>
+                    <p>Bilbila: +251 911 00 00 00</p>
+                </div>
+                <div style="flex: 1; min-width: 300px;">
+                    <!-- Image for the hotel, similar to the example -->
+                     <!--https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D-->
+                    <img src="h11.png" alt="Blue Horizon Hotel" style="width: 100%; height: 250px; object-fit: cover; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                </div>
+            </div>
+        </section>
+
+
+        <!-- CUSTOMER SECTION -->
+        <section id="customer-section" class="content-section">
+            <!-- Sample Images -->
+            <div class="sample-images">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600" alt="Food Sample">
+                <img src="https://images.unsplash.com/photo-1566665797739-1674de7a421a?w=600" alt="Room Sample">
+            </div>
+
+            <div class="admin-box">
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Search food, drink or room..."
+                        onkeyup="searchItems()">
+                </div>
+                <h3>🍽 Nyaata fi Dhugaatii (Food & Drinks)</h3> 
+                <table>
+                    <thead>
+                        <tr><th>Maqaa Nyaataa</th><th>Gosa</th><th>Gatii (Birr)</th><th>Filadhu</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Pizza</td><td>Nyaata</td><td>350</td><td><button class="btn-order" id="item-Pizza"
+                        onclick="addToCart('Pizza', 'Food', 350, this)">Add</button></td></tr>
+                        <tr><td>Burger</td><td>Nyaata</td><td>250</td><td><button class="btn-order" id="item-Burger"
+                        onclick="addToCart('Burger', 'Food', 250, this)">Add</button></td></tr>
+                        <tr><td>Pasta</td><td>Nyaata</td><td>200</td><td><button class="btn-order" id="item-Pasta"
+                        onclick="addToCart('Pasta', 'Food', 200, this)">Add</button></td></tr>
+                        <tr><td>Coca Cola</td><td>Dhugaatii</td><td>50</td><td><button class="btn-order" id="item-CocaCola"
+                        onclick="addToCart('Coca Cola', 'Drink', 50, this)">Add</button></td></tr>
+                        <tr><td>Coffee</td><td>Dhugaatii</td><td>40</td><td><button class="btn-order" id="item-Coffee"
+                        onclick="addToCart('Coffee', 'Drink', 40, this)">Add</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="admin-box">
+                <h3>🛏 Kutaalee Hoteelaa (Hotel Rooms)</h3>
+                <table>
+                    <thead>
+                        <tr><th>Lakk. Kutaa</th><th>Gosa Kutaa</th><th>Gatii (Birr)</th><th>Filadhu</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>R-101</td><td>Standard Room</td><td>1200</td><td><button class="btn-order" id="room-R-101"
+                        onclick="openBookingModal('Standard Room (R-101)', 'Room', 1200)">Book</button></td></tr>
+                        <tr><td>R-102</td><td>Standard Room</td><td>1200</td><td><button class="btn-order" id="room-R-102"
+                        onclick="openBookingModal('Standard Room (R-102)', 'Room', 1200)">Book</button></td></tr>
+                        <tr><td>R-201</td><td>VIP Room</td><td>2500</td><td><button class="btn-order" id="room-R-201"
+                        onclick="openBookingModal('VIP Room (R-201)', 'Room', 2500)">Book</button></td></tr>
+                        <tr><td>R-202</td><td>VIP Room</td><td>2500</td><td><button class="btn-order" id="room-R-202"
+                        onclick="openBookingModal('VIP Room (R-202)', 'Room', 2500)">Book</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="admin-box">
+                <h3>🛒 Cart Keessan</h3>
+                <div id="cartList"></div>
+                <div class="payment-box">
+                    <h4>Kaffaltii (Payment)</h4>
+                    <select id="paymentMethod" onchange="showPaymentInfo()" style="padding:10px; width:100%; margin:10px 0;">
+                        <option value="CBE">CBE (Bank)</option>
+                        <option value="Telebirr">Telebirr</option>
+                    </select>
+                    <div id="paymentDetails" style="font-size:14px; color:#555; margin-bottom:10px;"></div>
+                    <input type="text" id="paymentRef" placeholder="Transaction ID / Ref Number" style="padding:10px; width:100%;">
+                    <button class="btn-login" style="margin-top:10px; background:green;" onclick="confirmOrder()">Confirm & Pay</button>
+                </div>
+            </div>
+
+            <div class="admin-box">
+                <h3>📄 Certificate / Receipt</h3>
+                <button class="btn-login" style="background:#28a745;" onclick="generateReceipt()">Download Certificate</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Room Booking Modal -->
+    <div id="roomBookingModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeBookingModal()">&times;</span>
+            <h3 id="modalRoomName" style="color:#000CBA; margin-bottom: 15px;">Book Room: </h3>
+            <label for="checkInDate">Check-in Date & Time:</label>
+            <input type="datetime-local" id="checkInDate" class="modal-input">
+            <label for="checkOutDate">Check-out Date & Time:</label>
+            <input type="datetime-local" id="checkOutDate" class="modal-input">
+            <p style="margin-top: 15px;">Calculated Price: <strong id="calculatedRoomPrice" style="color:#dc3545;">0 Birr</strong></p>
+            <div class="modal-buttons">
+                <button class="btn-login" style="background: green;" onclick="confirmRoomBooking()">Confirm Booking</button>
+                <button class="btn-login" style="background: #555;" onclick="closeBookingModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+<script>
+    // --- DATA STORAGE ---
+    let customers = JSON.parse(localStorage.getItem('hotel_customers')) || [];
+    let orders = JSON.parse(localStorage.getItem('hotel_orders')) || [];
+    let history = JSON.parse(localStorage.getItem('hotel_history')) || [];
+    let cart = [];
+    let currentUser = null;
+    let editingCustomerIndex = -1; // -1 means no customer is currently being edited
+
+
+    let foods = JSON.parse(localStorage.getItem('hotel_foods')) || [
+        { name: "Pizza", type: "Food", price: 350 },
+        { name: "Burger", type: "Food", price: 250 },
+        { name: "Pasta", type: "Food", price: 200 },
+        { name: "Coca Cola", type: "Drink", price: 50 },
+        { name: "Coffee", type: "Drink", price: 40 }
+    ];
+
+    let rooms = JSON.parse(localStorage.getItem('hotel_rooms')) || [
+        { id: "R-101", type: "Standard Room", price: 1200 },
+        { id: "R-102", type: "Standard Room", price: 1200 },
+        { id: "R-201", type: "VIP Room", price: 2500 },
+        { id: "R-202", type: "VIP Room", price: 2500 }
+    ];
+
+    // --- LOGIN & DASHBOARD LOGIC (Akkuma duraatti) ---
+    function handleLogin() {
+        const role = document.getElementById('roleSelect').value;
+        const user = document.getElementById('username').value;
+        const pass = document.getElementById('password').value;
+
+        if (role === 'admin' && user === 'admin' && pass === 'admin123') setupDashboard('admin', 'Admin');
+        else if (role === 'manager' && user === 'manager' && pass === 'manager123') setupDashboard('manager', 'Manager');
+        else if (role === 'customer') {
+            const found = customers.find(c => c.username === user && c.password === pass);
+            if (found) { currentUser = found; setupDashboard('customer', found.fullName); }
+            else alert("Username ykn Password dogoggora!");
+        } else alert("Login Details Dogoggora!");
+    }
+
+    function setupDashboard(role, name) {
+        document.getElementById('login-page').style.display = 'none';
+        document.getElementById('main-dashboard').style.display = 'block';
+        document.getElementById('welcome-msg').innerText = `Baga Nagaan Dhufte, ${name}!`;
+        const links = document.getElementById('nav-links');
+        links.innerHTML = ""; 
+        if (role === 'admin') {
+            links.innerHTML = `
+                <li class="dropdown">
+                    <a href="javascript:void(0)">
+                        Registertion & Management
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a onclick="showSection('admin-section')">
+                                Customer
+                            </a>
+                        </li>
+                        <li>
+                            <a onclick="showSection('food-section')">
+                                Food&Drink
+                            </a>
+                        </li>
+                        <li>
+                            <a onclick="showSection('room-section')">
+                                Room
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                
+            `;
+            // DEFAULT PAGE
+            showSection('about-section');
+            // LOAD TABLES
+            updateAdminTable();
+            updateFoodTable();
+            updateRoomTable();
+        } else if (role === 'manager') {
+            links.innerHTML += `
+                <li><a onclick="showSection('manager-section')">Home</a></li>
+            `;
+            showSection('manager-section');
+            loadManagerData();
+            updateHistoryTable();
+        } else {
+            links.innerHTML += `
+                <li><a onclick="showSection('customer-section')">Home</a></li>
+            `;
+            showSection('customer-section');
+            showPaymentInfo();
+            updateCartUI();
+            updateRoomAvailabilityUI();
+            renderFoodItems();
+            renderRoomItems();
+        }
+        links.innerHTML += `<li><a onclick="showSection('about-section')">About</a></li>`;
+        links.innerHTML += `<li><a href="javascript:location.reload()" class="logout-btn">Logout</a></li>`;
+    }
+
+    function showSection(id) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active-section'));
+            document.getElementById(id).classList.add('active-section');
+            if (id === 'customer-section') {
+                updateFoodDrinkButtons();
+                updateRoomAvailabilityUI();
+            }
+        }
+
+    // --- ADMIN & CUSTOMER LOGIC (Akkuma duraatti) ---
+    function registerCustomer() {
+        const name = document.getElementById('fullName').value;
+        const address= document.getElementById('address').value;
+        const phone = document.getElementById('phone').value;
+        const user = document.getElementById('regUser').value;
+        const pass = document.getElementById('regPass').value;
+        if (!name || !user || !pass) return alert("Guuti!");
+        customers.push({ fullName: name, address, phone, username: user, password: pass });
+        localStorage.setItem('hotel_customers', JSON.stringify(customers));
+        updateAdminTable();
+        alert("Galmaa'eera!");
+        resetCustomerForm(); // Kana dabali
+    }
+
+    function updateAdminTable() {
+        document.getElementById('customerBody').innerHTML = customers.map((c, i) =>
+         `<tr>
+            <td>${c.fullName}</td>
+            <td>${c.address}</td>
+            <td>${c.phone}</td>
+            <td>${c.username}</td>
+            <td>
+                <button onclick="deleteCustomer(${i})" class="btn-action delete-btn">Delete</button>
+                <button onclick="editCustomer(${i})" class="btn-action edit-btn">Edit</button>
+            </td>
+        </tr>`).join('');
+    }
+
+    function editCustomer(index) {
+    editingCustomerIndex = index;
+    const customer = customers[index];
+        // Form fields guuti
+        document.getElementById('fullName').value = customer.fullName;
+        document.getElementById('address').value = customer.address;
+        document.getElementById('phone').value = customer.phone;
+        document.getElementById('regUser').value = customer.username;
+        document.getElementById('regPass').value = customer.password; 
+        // Button text fi onclick handler jijjiiri
+        const saveButton = document.querySelector('#admin-section .btn-login');
+        saveButton.innerText = 'Update Customer';
+        saveButton.onclick = updateCustomer; // Function haaraa kenna
+    }
+
+    function updateCustomer() {
+        if (editingCustomerIndex === -1) {
+            alert("Dogoggora: Maamilni sirreessuuf hin filatamne.");
+            return;
+        }
+
+        const name = document.getElementById('fullName').value;
+        const address = document.getElementById('address').value;
+        const phone = document.getElementById('phone').value;
+        const user = document.getElementById('regUser').value;
+        const pass = document.getElementById('regPass').value;
+
+        if (!name || !user || !pass) {
+            alert("Guuti!"); // Fields hunda guutuu mirkaneeffadhu
+            return;
+        }
+
+        // Customer object haaressi
+        customers[editingCustomerIndex] = {
+            fullName: name,
+            address: address,
+            phone: phone,
+            username: user,
+            password: pass
+        };
+
+        localStorage.setItem('hotel_customers', JSON.stringify(customers));
+        updateAdminTable();
+        alert("Maamila sirreeffameera!"); // Customer updated!
+
+        // Form fi button deebisi
+        resetCustomerForm();
+    }
+
+    function resetCustomerForm() {
+        document.getElementById('fullName').value = '';
+        document.getElementById('address').value = '';
+        document.getElementById('phone').value = '';
+        document.getElementById('regUser').value = '';
+        document.getElementById('regPass').value = '';
+
+        const saveButton = document.querySelector('#admin-section .btn-login');
+        saveButton.innerText = 'Save Customer';
+        saveButton.onclick = registerCustomer; // Function jalqabaatti deebisi
+        editingCustomerIndex = -1; // Editing state deebisi
+    }
+
+
+    function deleteCustomer(i) { 
+        customers.splice(i, 1); localStorage.setItem('hotel_customers', JSON.stringify(customers)); updateAdminTable(); }
+
+    function addFood() {
+        const name = document.getElementById('foodName').value;
+        const type = document.getElementById('foodType').value;
+        const price = document.getElementById('foodPrice').value;
+        if (!name || !price) {
+            return alert("Fill all fields!");
+        }
+        foods.push({
+            name,
+            type,
+            price
+        });
+        localStorage.setItem('hotel_foods', JSON.stringify(foods));
+        updateFoodTable();
+        renderFoodItems();
+        document.getElementById('foodName').value = '';
+        document.getElementById('foodPrice').value = '';
+    }
+    function updateFoodTable() {
+        document.getElementById('foodBody').innerHTML = foods.map((f, i) => `
+            <tr>
+                <td>${f.name}</td>
+                <td>${f.type}</td>
+                <td>${f.price}</td>
+                <td>
+                    <button
+                        onclick="deleteFood(${i})"
+                        class="btn-action delete-btn"
+                    > Delete</button>
+                    <button onclick="editFood(${i})"
+                    class="btn-action edit-btn"
+                > Edit </button>
+                </td>
+            </tr>
+
+        `).join('');
+    }
+    function deleteFood(i) {
+        foods.splice(i, 1);
+        localStorage.setItem('hotel_foods', JSON.stringify(foods));
+        updateFoodTable();
+        renderFoodItems();
+    }
+
+    function editFood(i) {
+        const food = foods[i];
+        document.getElementById('foodName').value = food.name;
+        document.getElementById('foodType').value = food.type;
+        document.getElementById('foodPrice').value = food.price;
+        foods.splice(i, 1);
+        localStorage.setItem('hotel_foods', JSON.stringify(foods));
+        updateFoodTable();
+        renderFoodItems();
+    }
+
+    function addRoom() {
+        const id = document.getElementById('roomIdInput').value;
+        const type = document.getElementById('roomTypeInput').value;
+        const price = document.getElementById('roomPriceInput').value;
+        if (!id || !type || !price) {
+            return alert("Fill all fields!");
+        }
+        rooms.push({
+            id,
+            type,
+            price
+        });
+        localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+        updateRoomTable();
+        renderRoomItems();
+        document.getElementById('roomIdInput').value = '';
+        document.getElementById('roomTypeInput').value = '';
+        document.getElementById('roomPriceInput').value = '';
+    }
+    function updateRoomTable() {
+        document.getElementById('roomBody').innerHTML = rooms.map((r, i) => `
+            <tr>
+                <td>${r.id}</td>
+                <td>${r.type}</td>
+                <td>${r.price}</td>
+                <td>
+                    <button onclick="deleteRoom(${i})"
+                        class="btn-action delete-btn"
+                    > Delete </button>
+                    <button onclick="editRoom(${i})"
+                    class="btn-action edit-btn"> Edit</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    function deleteRoom(i) {
+        rooms.splice(i, 1);
+        localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+        updateRoomTable();
+        renderRoomItems();
+    }
+
+    function editRoom(i) {
+        const room = rooms[i];
+        document.getElementById('roomIdInput').value = room.id;
+        document.getElementById('roomTypeInput').value = room.type;
+        document.getElementById('roomPriceInput').value = room.price;
+        rooms.splice(i, 1);
+        localStorage.setItem('hotel_rooms', JSON.stringify(rooms));
+        updateRoomTable();
+        renderRoomItems();
+    }
+
+
+    function renderFoodItems() {
+        const tbody = document.querySelector('#customer-section table tbody');
+        tbody.innerHTML = foods.map(f => `
+            <tr>
+                <td>${f.name}</td>
+                <td>${f.type}</td>
+                <td>${f.price}</td>
+                <td>
+                    <button
+                        class="btn-order"
+                        id="item-${f.name.replace(/\s/g,'')}"
+                        onclick="addToCart('${f.name}', '${f.type}', ${f.price}, this)"
+                    >Add</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    function renderRoomItems() {
+        const roomTable = document.querySelectorAll('#customer-section table tbody')[1];
+        roomTable.innerHTML = rooms.map(r => `
+            <tr>
+                <td>${r.id}</td>
+                <td>${r.type}</td>
+                <td>${r.price}</td>
+                <td>
+                    <button
+                        class="btn-order"
+                        id="room-${r.id}"
+                        onclick="openBookingModal('${r.type} (${r.id})', 'Room', ${r.price})"
+                    > Book</button>
+                </td>
+            </tr>
+        `).join('');
+        updateRoomAvailabilityUI();
+    }
+
+    function searchItems() {
+
+        const value =
+            document.getElementById('searchInput').value.toLowerCase();
+        const tables =
+            document.querySelectorAll('#customer-section table');
+        tables.forEach(table => {
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text =
+                    row.innerText.toLowerCase();
+                if (text.includes(value)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    let currentRoomBookingDetails = {}; // To store room details temporarily for the modal
+
+    function addToCart(name, type, price, buttonElement) { // buttonElement dabali
+        const found = cart.find(item => item.name === name && item.type === type);
+        if (found) {
+            found.qty++;
+        } else {
+            cart.push({ name, type, price, qty: 1 });
+        }
+        updateCartUI();
+        showNotification(`✔️ ${name} dabalame!`);
+        // Update the button state
+        if (buttonElement) {
+            buttonElement.innerHTML = '✔️ Added';
+            buttonElement.disabled = true;
+            buttonElement.classList.add('added');
+        }
+    }
+
+
+    // --- New Room Booking Functions ---
+    function openBookingModal(roomName, roomType, dailyPrice) {
+        currentRoomBookingDetails = { roomName, roomType, dailyPrice };
+        document.getElementById('modalRoomName').innerText = `Book Room: ${roomName}`;
+        // Set default dates (current time + 1 hour for checkout)
+        const now = new Date();
+        const checkOutDefault = new Date(now.getTime() + 60 * 60 * 1000); // 1 hour later
+        document.getElementById('checkInDate').value = formatDateTimeLocal(now);
+        document.getElementById('checkOutDate').value = formatDateTimeLocal(checkOutDefault);
+        calculateRoomPrice(); // Calculate initial price
+        document.getElementById('roomBookingModal').style.display = 'block';
+    }
+
+    function closeBookingModal() {
+        document.getElementById('roomBookingModal').style.display = 'none';
+        // Clear fields and reset
+        document.getElementById('checkInDate').value = '';
+        document.getElementById('checkOutDate').value = '';
+        document.getElementById('calculatedRoomPrice').innerText = '0 Birr';
+        currentRoomBookingDetails = {};
+    }
+
+    // Helper to format Date object for datetime-local input
+    function formatDateTimeLocal(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    }
+
+    function calculateRoomPrice() {
+        const checkInStr = document.getElementById('checkInDate').value;
+        const checkOutStr = document.getElementById('checkOutDate').value;
+        const dailyPrice = currentRoomBookingDetails.dailyPrice;
+        const priceDisplay = document.getElementById('calculatedRoomPrice');
+        if (!checkInStr || !checkOutStr || !dailyPrice) {
+            priceDisplay.innerText = '0 Birr';
+            return;
+        }
+        const checkInDate = new Date(checkInStr);
+        const checkOutDate = new Date(checkOutStr);
+        const now = new Date();
+        // Validation
+        if (checkInDate.getTime() < now.getTime() - (60 * 1000)) { // Allow a minute grace for current time
+            priceDisplay.innerText = 'Invalid Check-in Date (cannot be in the past)';
+            return;
+        }
+        if (checkOutDate <= checkInDate) {
+            priceDisplay.innerText = 'Invalid Check-out Date (must be after Check-in)';
+            return;
+        }
+        const durationMs = checkOutDate.getTime() - checkInDate.getTime();
+        const totalHours = durationMs / (1000 * 60 * 60); // Convert milliseconds to hours
+        const hourlyRate = dailyPrice / 24; // Assuming 24 hours in a day
+        const calculatedTotal = Math.ceil(totalHours * hourlyRate); // Round up to nearest Birr for simplicity
+        priceDisplay.innerText = `${calculatedTotal} Birr`;
+    }
+
+    // Add event listeners to inputs for real-time calculation
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkInInput = document.getElementById('checkInDate');
+        const checkOutInput = document.getElementById('checkOutDate');
+        if (checkInInput) checkInInput.addEventListener('change', calculateRoomPrice);
+        if (checkOutInput) checkOutInput.addEventListener('change', calculateRoomPrice);
+    });
+
+
+    function confirmRoomBooking() {
+        const checkInStr = document.getElementById('checkInDate').value;
+        const checkOutStr = document.getElementById('checkOutDate').value;
+        const calculatedPriceText = document.getElementById('calculatedRoomPrice').innerText;
+        if (!checkInStr || !checkOutStr || calculatedPriceText.includes('Invalid') || calculatedPriceText === '0 Birr') {
+            alert("Please select valid check-in/check-out dates and ensure price is calculated.");
+            return;
+        }
+        const calculatedPrice = parseInt(calculatedPriceText.replace(' Birr', ''));
+        // Add room booking to cart
+        cart.push({
+            name: currentRoomBookingDetails.roomName,
+            type: 'Room',
+            price: calculatedPrice,
+            qty: 1,
+            checkIn: checkInStr,
+            checkOut: checkOutStr,
+            dailyRate: currentRoomBookingDetails.dailyPrice
+        });
+        updateCartUI();
+        showNotification(`✔️ ${currentRoomBookingDetails.roomName} booking added to cart!`);
+        closeBookingModal();
+    const roomNumberMatch = currentRoomBookingDetails.roomName.match(/\(([^)]+)\)/);
+        let roomNumber = '';
+        if (roomNumberMatch && roomNumberMatch[1]) {
+            roomNumber = roomNumberMatch[1].trim();
+        } else {
+            roomNumber = currentRoomBookingDetails.roomName.split(' ')[0].trim();
+        }
+        const roomId = `room-${roomNumber.replace(/-/g, '')}`;
+        const roomButton = document.getElementById(roomId);
+        if (roomButton) {
+            roomButton.innerHTML = 'Booked';
+            roomButton.disabled = true;
+            roomButton.classList.add('booked');
+        }
+    }
+    
+
+    function updateCartUI() {
+        const container = document.getElementById('cartList');
+        if (cart.length === 0) {
+            container.innerHTML = "<p>Cart duwwaa dha.</p>";
+            document.querySelectorAll('.customer-section .btn-order').forEach(button => {
+                if (button.id.startsWith('item-')) {
+                    button.innerHTML = 'Add';
+                    button.disabled = false;
+                    button.classList.remove('added');
+                }
+            });
+            return;
+        }
+        let total = 0;
+        let html = cart.map((item, i) => {
+            if (item.type === 'Room') {
+                total += item.price;
+                return `<div class="cart-item">
+                            <div>
+                                <strong>${item.name}</strong><br>
+                                <small>Check-in: ${new Date(item.checkIn).toLocaleString()}</small><br>
+                                <small>Check-out: ${new Date(item.checkOut).toLocaleString()}</small>
+                            </div>
+                            <div>
+                                <button class="qty-btn" onclick="removeCartItem(${i})">Remove</button>
+                            </div>
+                            <div>${item.price} Birr</div>
+                        </div>`;
+            } else { 
+                total += item.price * item.qty;
+                return `<div class="cart-item">
+                            <div><strong>${item.name}</strong></div>
+                            <div>
+                                <button class="qty-btn" onclick="changeQty(${i},-1)">-</button>${item.qty}<button class="qty-btn"
+                                onclick="changeQty(${i},1)">+</button>
+                            </div>
+                            <div>${item.price * item.qty} Birr</div>
+                        </div>`;
+            }
+        }).join('');
+        container.innerHTML = html + `<div style="text-align:right; padding:10px;"><strong>Total: ${total} Birr</strong></div>`;
+        updateFoodDrinkButtons();
+    }
+
+    // New function to remove items from cart (especially for rooms where qty doesn't apply)
+    function removeCartItem(index) {
+        const removedItem = cart[index];
+        cart.splice(index, 1);
+        updateCartUI();
+        if (removedItem.type === 'Room') {
+            updateRoomAvailabilityUI();
+        }
+    }
+
+    // --- Functions to manage button states ---
+
+    function updateFoodDrinkButtons() {
+        document.querySelectorAll('.customer-section .btn-order').forEach(button => {
+            if (button.id.startsWith('item-')) {
+                const itemName = button.id.replace('item-', '');
+                const isInCart = cart.some(item => item.name.replace(/\s/g, '') === itemName && item.type !== 'Room');
+
+                if (isInCart) {
+                    button.innerHTML = '✔️ Added';
+                    button.disabled = true;
+                    button.classList.add('added');
+                } else {
+                    button.innerHTML = 'Add';
+                    button.disabled = false;
+                    button.classList.remove('added');
+                }
+            }
+        });
+    }
+
+    function updateRoomAvailabilityUI() {
+        const now = new Date();
+        document.querySelectorAll('.btn-order').forEach(button => {
+            if (button.id.startsWith('room-')) {
+                let buttonRoomId = button.id.replace('room-', '');
+                let isBooked = false;
+                // CHECK ACTIVE ORDERS
+                orders.forEach(order => {
+                    // NEW STRUCTURE
+                    if (order.rooms && order.rooms.length > 0) {
+                        order.rooms.forEach(room => {
+                            const match = room.name.match(/\(([^)]+)\)/);
+                            if (match && match[1]) {
+                                const roomId = match[1];
+                                const checkOut = new Date(room.checkOut);
+                                // IMPORTANT FIX
+                                if (
+                                    roomId === buttonRoomId &&
+                                    now < checkOut
+                                ) {
+                                    isBooked = true;
+                                }
+                            }
+                        });
+                    }
+                    // OLD STRUCTURE SUPPORT
+                    else if (order.type === "Room") {
+                        const match = order.name.match(/\(([^)]+)\)/);
+                        if (match && match[1]) {
+                            const roomId = match[1];
+                            const checkOut = new Date(order.checkOut);
+                            if (
+                                roomId === buttonRoomId &&
+                                now < checkOut
+                            ) {
+                                isBooked = true;
+                            }
+                        }
+                    }
+                });
+                // CHECK HISTORY ALSO
+                history.forEach(order => {
+                    if (order.rooms && order.rooms.length > 0) {
+                        order.rooms.forEach(room => {
+                            const match = room.name.match(/\(([^)]+)\)/);
+                            if (match && match[1]) {
+                                const roomId = match[1];
+                                const checkOut = new Date(room.checkOut);
+                                if (
+                                    roomId === buttonRoomId &&
+                                    now < checkOut
+                                ) {
+                                    isBooked = true;
+                                }
+                            }
+                        });
+                    }
+                    else if (order.type === "Room") {
+                        const match = order.name.match(/\(([^)]+)\)/);
+                        if (match && match[1]) {
+                            const roomId = match[1];
+                            const checkOut = new Date(order.checkOut);
+                            if (
+                                roomId === buttonRoomId &&
+                                now < checkOut
+                            ) {
+                                isBooked = true;
+                            }
+                        }
+                    }
+                });
+                // CHECK CURRENT CART
+                cart.forEach(item => {
+                    if (item.type === "Room") {
+                        const match = item.name.match(/\(([^)]+)\)/);
+                        if (match && match[1]) {
+                            const roomId = match[1];
+                            if (roomId === buttonRoomId) {
+                                isBooked = true;
+                            }
+                        }
+                    }
+                });
+                // UPDATE BUTTON UI
+                if (isBooked) {
+                    button.innerHTML = "Booked";
+                    button.disabled = true;
+                    button.classList.add("booked");
+                } else {
+                    button.innerHTML = "Book";
+                    button.disabled = false;
+                    button.classList.remove("booked");
+                }
+            }
+        });
+    }
+
+   function changeQty(i, amt) {
+        if (cart[i].type === 'Room') { // Cannot change quantity for room bookings
+            removeCartItem(i); // Treat as removal if trying to reduce qty of a room
+            return;
+        }
+        cart[i].qty += amt;
+        if (cart[i].qty <= 0) cart.splice(i, 1);
+        updateCartUI();
+    }
+
+    function showPaymentInfo() {
+        const method = document.getElementById('paymentMethod').value;
+        document.getElementById('paymentDetails').innerHTML = method === "CBE" ? "CBE: 1000123456789" : "Telebirr: +251911000000";
+    }
+
+    function confirmOrder() {
+        const ref = document.getElementById('paymentRef').value;
+        if (cart.length === 0 || !ref) {
+            return alert("Cart ykn Ref guuti!");
+        }
+        let groupedOrder = {
+            customerName: currentUser.fullName,
+            phone: currentUser.phone,
+            paymentMethod: document.getElementById('paymentMethod').value,
+            paymentRef: ref,
+            status: "Pending",
+            reportReady: false,
+            downloaded: false,
+            date: new Date().toLocaleString(),
+            foods: [],
+            rooms: [],
+            totalQty: 0,
+            totalPrice: 0
+        };
+        cart.forEach(item => {
+            if (item.type === "Room") {
+                groupedOrder.rooms.push({
+                    name: item.name,
+                    qty: 1,
+                    price: item.price,
+                    checkIn: item.checkIn,
+                    checkOut: item.checkOut
+                });
+                groupedOrder.totalQty += 1;
+                groupedOrder.totalPrice += item.price;
+            } else {
+                groupedOrder.foods.push({
+                    name: item.name,
+                    qty: item.qty,
+                    price: item.price
+                });
+                groupedOrder.totalQty += item.qty;
+                groupedOrder.totalPrice += (item.price * item.qty);
+            }
+        });
+        orders.push(groupedOrder);
+        localStorage.setItem('hotel_orders', JSON.stringify(orders));
+        cart = [];
+        updateCartUI();
+        document.getElementById('paymentRef').value = "";
+        alert("Order ergameera!");
+        updateRoomAvailabilityUI();
+    }
+
+    // --- MANAGER LOGIC ---
+    function loadManagerData() {
+        const tbody = document.getElementById('managerOrders');
+        tbody.innerHTML = orders.map((o, i) => {
+            let foodText = "-";
+            let roomText = "-";
+            if (o.foods.length > 0) {
+                foodText = o.foods.map(f =>
+                    `${f.name} (${f.qty})`
+                ).join(", ");
+            }
+            if (o.rooms.length > 0) {
+                roomText = o.rooms.map(r => {
+                    let roomId = "";
+                    const match = r.name.match(/\(([^)]+)\)/);
+                    if (match && match[1]) {
+                        roomId = match[1];
+                    }
+                    return roomId;
+                }).join(", ");
+            }
+            return `
+                <tr>
+                    <td>${o.customerName}</td>
+                    <td>${foodText}</td>
+                    <td>${roomText}</td>
+                    <td>${o.totalQty}</td>
+                    <td>${o.totalPrice} Birr</td>
+                    <td>${o.paymentMethod}</td>
+                    <td style="color:orange">${o.status}</td>
+                    <td>
+                        <button
+                            onclick="completeOrder(${i})"
+                            style="background:green;color:white;padding:5px;border:none;cursor:pointer;" >
+                            Complete
+                        </button>
+                    </td>
+                </tr>
+            `;
+
+        }).join('');
+        updateHistoryTable();
+    }
+
+    function completeOrder(i) {
+        let completedOrder = orders[i];
+        completedOrder.status = "Completed";
+        completedOrder.reportReady = true;
+        completedOrder.downloaded = false;
+        history.push(completedOrder);
+        localStorage.setItem('hotel_history', JSON.stringify(history));
+        orders.splice(i, 1);
+        localStorage.setItem('hotel_orders', JSON.stringify(orders));
+        loadManagerData();
+        updateHistoryTable();
+        showNotification("✔️ Order Completed!");
+        updateRoomAvailabilityUI();
+    }
+
+
+    function updateHistoryTable() {
+        const hBody = document.getElementById('managerHistory');
+        let totalIncome = 0;
+        hBody.innerHTML = history.map(o => {
+            let foodText = "-";
+            let roomText = "-";
+            // NEW STRUCTURE
+            if (o.foods && o.foods.length > 0) {
+                foodText = o.foods.map(f =>
+                    `${f.name} (${f.qty})`
+                ).join(", ");
+            }
+            if (o.rooms && o.rooms.length > 0) {
+                roomText = o.rooms.map(r => {
+                    const match = r.name.match(/\(([^)]+)\)/);
+                    if (match && match[1]) {
+                        return match[1];
+                    }
+                    return r.name;
+                }).join(", ");
+            }
+            // OLD STRUCTURE SUPPORT
+            if ((!o.foods || o.foods.length === 0) && o.type !== "Room" && o.name) {
+                foodText = `${o.name} (${o.qty})`;
+            }
+            if ((!o.rooms || o.rooms.length === 0) && o.type === "Room" && o.name) {
+                const match = o.name.match(/\(([^)]+)\)/);
+                if (match && match[1]) {
+                    roomText = match[1];
+                } else {
+                    roomText = o.name;
+                }
+            }
+            // TOTAL PRICE
+            let orderTotal = 0;
+            if (o.totalPrice) {
+                orderTotal = o.totalPrice;
+            } else {
+                orderTotal = o.type === "Room"
+                    ? o.price
+                    : (o.price * o.qty);
+            }
+            totalIncome += orderTotal;
+            return `
+                <tr>
+                    <td>${o.date}</td>
+                    <td>${o.customerName}</td>
+                    <td>${foodText}</td>
+                    <td>${roomText}</td>
+                    <td>${orderTotal} Birr</td>
+                    <td>${o.paymentMethod}</td>
+                    <td>${o.status}</td>
+                </tr>
+            `;
+        }).join('');
+        document.getElementById('reportBox').innerHTML =
+            `Total Sales: ${history.length} | Total Income: ${totalIncome} Birr`;
+    }
+    function clearHistory() { if(confirm("Delete?")) { history = []; localStorage.setItem('hotel_history', JSON.stringify(history)); updateHistoryTable(); } }
+    // --- CERTIFICATE GENERATION (SIRREEFFAME) ---
+    function generateReceipt() {
+        // History keessaa kan maamila kanaa ta'ee fi kan reportReady ta'e qofa sassaaba
+        const myReady = history.filter(o => o.customerName === currentUser.fullName && o.reportReady === true && o.downloaded === false);
+        if (myReady.length === 0) return alert("Manager order kee hin xumurre ykn kanaan dura buufatteetta!");
+        let total = 0;
+        let content = `===== BLUE HORIZON HOTEL =====\nRECEIPT\nCustomer: ${currentUser.fullName}\n------------------------------\n`;
+        myReady.forEach(o => {
+            if (o.foods.length > 0) {
+                content += "\nFOOD & DRINKS:\n";
+                o.foods.forEach(f => {
+                    let subtotal = f.price * f.qty;
+                    content += `${f.name} (${f.qty}) - ${subtotal} Birr\n`;
+                    total += subtotal;
+                });
+            }
+            if (o.rooms.length > 0) {
+                content += "\nROOMS:\n";
+                o.rooms.forEach(r => {
+                    const match = r.name.match(/\(([^)]+)\)/);
+
+                    let roomId = match && match[1]
+                        ? match[1]
+                        : r.name;
+
+                    content += `${roomId} - ${r.price} Birr\n`;
+
+                    total += r.price;
+                });
+            }
+        });
+        content += `------------------------------\nTOTAL: ${total} Birr\nGalatoomaa!`;
+        const blob = new Blob([content], { type: "text/plain" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `Receipt_${currentUser.fullName}.txt`;
+        link.click();
+        // 🔥 JIJJIIRRAA: Erga download godhee booda 'downloaded = true' godhi
+        history.forEach(o => {
+            if (o.customerName === currentUser.fullName && o.reportReady === true) {
+                o.downloaded = true;
+            }
+        });
+        localStorage.setItem('hotel_history', JSON.stringify(history));
+        showNotification("✅ Certificate milkiin buufameera!");
+    }
+    // --- NOTIFICATION SYSTEM (SIRREEFFAME) ---
+    function showNotification(msg) {
+        const div = document.getElementById('notification');
+        div.innerText = msg; div.style.display = 'block';
+        setTimeout(() => div.style.display = 'none', 3000);
+    }
+
+    // 🔥 JIJJIIRRAA: Notification kan agarsiisu yoo order-riin hin buufamin (downloaded === false) qofa
+    setInterval(() => {
+        if (currentUser) {
+            const readyNotDownloaded = history.find(o => 
+                o.customerName === currentUser.fullName && 
+                o.reportReady === true && 
+                o.downloaded === false
+            );
+            
+            if (readyNotDownloaded) {
+                showNotification("📄 Certificate kee qophaa'eera! Buufachuu dandeessa.");
+            }
+        }
+    }, 8000); 
+    const slideContainer = document.getElementById('slide-container');
+
+    // 1. Suuraa 5 fi Kallattii isaanii (Animation Classes)
+    const slidesData = [
+        { img: 'h4.jfif', anim: 'zoom-in' },
+        { img: 'h1.jpg', anim: 'slide-right' },
+        { img: 'h6.jfif', anim: 'slide-top' },
+        { img: 'h2.jpg', anim: 'slide-left' }, // Suuraa dabalataa 1
+        { img: 'h3.jfif', anim: 'slide-bottom' } // Suuraa dabalataa 2
+    ];
+    let currentIdx = 0;
+    // 2. Suuraawwan HTML keessatti uumuu
+    slidesData.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = `slide ${item.anim}`;
+        div.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('${item.img}')`;
+        if (index === 0) div.classList.add('active'); // Inni jalqabaa akka mul'atu
+        slideContainer.appendChild(div);
+    });
+    const allSlides = document.querySelectorAll('.slide');
+    function changeBackground() {
+        // Suuraa amma jiru irraa 'active' balleessi
+        allSlides[currentIdx].classList.remove('active');
+        // Index itti aanuun bakka buusi
+        currentIdx = (currentIdx + 1) % slidesData.length;
+        // Suuraa haaraa irratti 'active' dabalii
+        allSlides[currentIdx].classList.add('active');
+    }
+    // 3. AUTO SLIDE (Sekondii 5 tti takka)
+    setInterval(changeBackground, 5000);
+
+    document.addEventListener('click', function(e){
+
+        const dropdown =
+            document.querySelector('.dropdown');
+
+        if (!dropdown) return;
+
+        if (dropdown.contains(e.target)) {
+
+            dropdown.classList.toggle('active');
+
+        } else {
+
+            dropdown.classList.remove('active');
+        }
+    });
+</script>
+</body>
+</html>
